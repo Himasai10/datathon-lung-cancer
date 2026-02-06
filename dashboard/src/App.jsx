@@ -3,7 +3,7 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
   BarChart, Bar, Cell
 } from 'recharts';
-import { Activity, DollarSign, Heart, ShieldAlert, Award, ChevronRight } from 'lucide-react';
+import { Activity, DollarSign, Heart, ShieldAlert, Award, ChevronRight, Info, Users, TrendingUp } from 'lucide-react';
 
 const DATA = {
   chicago: {
@@ -20,6 +20,11 @@ const DATA = {
     hotspot_smoking: 0.22,
     hotspot_incidence: 88.6,
   }
+};
+
+// Helper function to format percentages properly (avoids floating point issues)
+const formatPercent = (value) => {
+  return (value * 100).toFixed(1) + '%';
 };
 
 const LungCancerDashboard = () => {
@@ -54,121 +59,163 @@ const LungCancerDashboard = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background text-white p-8 font-sans">
-      <header className="mb-12 flex justify-between items-center">
-        <div>
-          <h1 className="text-4xl font-black tracking-tighter text-blue-500 mb-2">PULSE: LUNG CANCER ROI</h1>
-          <p className="text-gray-400 max-w-2xl">Return on Prevention: Comparing data-driven interventions for Chicago and Philadelphia.</p>
-        </div>
-        <div className="bg-surface p-4 rounded-2xl border border-gray-800">
-          <span className="text-xs uppercase font-bold text-gray-500 block mb-1">Target Scenario</span>
-          <div className="flex gap-4">
-            <div>
-              <label className="text-xs text-blue-400">UPTAKE: {(uptake * 100).toFixed(0)}%</label>
+    <div className="min-h-screen bg-background text-slate-800 p-8 font-sans">
+      {/* Header */}
+      <header className="mb-10">
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+          <div>
+            <h1 className="text-4xl font-black tracking-tight text-brand mb-2">PULSE: Lung Cancer ROI</h1>
+            <p className="text-muted max-w-2xl">Return on Prevention: Comparing data-driven interventions for Chicago and Philadelphia.</p>
+          </div>
+
+          {/* Uptake Control Panel */}
+          <div className="bg-surface p-6 rounded-2xl border border-border shadow-lg w-full lg:w-auto">
+            <div className="flex items-center gap-2 mb-3">
+              <Users className="text-brand size-5" />
+              <span className="text-sm font-semibold text-slate-700">Screening Uptake Rate</span>
+              <div className="group relative">
+                <Info className="text-muted size-4 cursor-help" />
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-slate-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity w-64 pointer-events-none z-10">
+                  <strong>Uptake Rate</strong> is the percentage of eligible population that participates in lung cancer screening programs. Higher uptake = more people screened = earlier detection.
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
               <input
                 type="range" min="0.05" max="1" step="0.05"
                 value={uptake} onChange={(e) => setUptake(parseFloat(e.target.value))}
-                className="block w-32 h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer mt-2"
+                className="w-48 h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-brand"
               />
+              <span className="text-2xl font-bold text-brand min-w-[60px]">{(uptake * 100).toFixed(0)}%</span>
             </div>
+            <p className="text-xs text-muted mt-2">
+              {uptake <= 0.2 ? "Low uptake: Limited reach, lower costs" :
+                uptake <= 0.5 ? "Moderate uptake: Balanced approach" :
+                  "High uptake: Maximum prevention impact"}
+            </p>
           </div>
         </div>
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
-        {/* Metric Cards */}
-        <div className="bg-surface p-6 rounded-3xl border border-gray-800 flex items-center gap-6 shadow-2xl">
-          <div className="p-4 bg-blue-500/10 rounded-2xl">
-            <Heart className="text-blue-500 size-8" />
+      {/* Key Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+        <div className="bg-surface p-6 rounded-2xl border border-border shadow-md flex items-center gap-5 hover:shadow-lg transition-shadow">
+          <div className="p-4 bg-blue-100 rounded-xl">
+            <Heart className="text-brand size-7" />
           </div>
           <div>
-            <h3 className="text-gray-400 text-sm font-medium">Estimated Lives Saved</h3>
-            <p className="text-3xl font-bold">{(results.chicago.lives_saved + results.philly.lives_saved).toLocaleString()}</p>
+            <h3 className="text-muted text-sm font-medium mb-1">Estimated Lives Saved</h3>
+            <p className="text-3xl font-bold text-slate-800">{(results.chicago.lives_saved + results.philly.lives_saved).toLocaleString()}</p>
+            <p className="text-xs text-muted mt-1">Over {years} years combined</p>
           </div>
         </div>
-        <div className="bg-surface p-6 rounded-3xl border border-gray-800 flex items-center gap-6 shadow-2xl">
-          <div className="p-4 bg-green-500/10 rounded-2xl">
-            <DollarSign className="text-safe size-8" />
+
+        <div className="bg-surface p-6 rounded-2xl border border-border shadow-md flex items-center gap-5 hover:shadow-lg transition-shadow">
+          <div className="p-4 bg-green-100 rounded-xl">
+            <DollarSign className="text-safe size-7" />
           </div>
           <div>
-            <h3 className="text-gray-400 text-sm font-medium">Net Economic Impact</h3>
-            <p className="text-3xl font-bold">${((results.chicago.total_savings + results.philly.total_savings) / 1e6).toFixed(1)}M</p>
+            <h3 className="text-muted text-sm font-medium mb-1">Net Economic Impact</h3>
+            <p className="text-3xl font-bold text-slate-800">${((results.chicago.total_savings + results.philly.total_savings) / 1e6).toFixed(1)}M</p>
+            <p className="text-xs text-muted mt-1">{(results.chicago.total_savings + results.philly.total_savings) >= 0 ? "Savings" : "Investment needed"}</p>
           </div>
         </div>
-        <div className="bg-surface p-6 rounded-3xl border border-gray-800 flex items-center gap-6 shadow-2xl">
-          <div className="p-4 bg-orange-500/10 rounded-2xl">
-            <Award className="text-orange-500 size-8" />
+
+        <div className="bg-surface p-6 rounded-2xl border border-border shadow-md flex items-center gap-5 hover:shadow-lg transition-shadow">
+          <div className="p-4 bg-orange-100 rounded-xl">
+            <TrendingUp className="text-orange-600 size-7" />
           </div>
           <div>
-            <h3 className="text-gray-400 text-sm font-medium">Equity Efficiency</h3>
-            <p className="text-3xl font-bold">8.4x</p>
+            <h3 className="text-muted text-sm font-medium mb-1">Equity Efficiency</h3>
+            <p className="text-3xl font-bold text-slate-800">8.4x</p>
+            <p className="text-xs text-muted mt-1">ROI in underserved areas</p>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-        {/* Comparison Section */}
-        <div className="bg-surface p-8 rounded-3xl border border-gray-800 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 blur-3xl rounded-full"></div>
-          <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-            <ChevronRight className="text-blue-500" /> Chicago Model
+      {/* City Comparison */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
+        {/* Chicago */}
+        <div className="bg-surface p-8 rounded-2xl border border-border shadow-md hover:shadow-lg transition-shadow">
+          <h2 className="text-xl font-bold mb-6 flex items-center gap-2 text-slate-800">
+            <div className="w-3 h-3 bg-brand rounded-full"></div>
+            Chicago Model
           </h2>
           <div className="space-y-4">
-            <div className="flex justify-between border-b border-gray-800 pb-2 text-sm">
-              <span className="text-gray-500">Benchmark Smoking</span>
-              <span>10.3%</span>
+            <div className="flex justify-between items-center py-3 border-b border-border">
+              <span className="text-muted">City-wide Smoking Rate</span>
+              <span className="font-semibold text-slate-700">{formatPercent(DATA.chicago.baseline_smoking)}</span>
             </div>
-            <div className="flex justify-between border-b border-gray-800 pb-2 text-sm">
-              <span className="text-gray-500 font-bold">Hotspot: {DATA.chicago.hotspot}</span>
-              <span className="text-danger font-bold">{DATA.chicago.hotspot_smoking * 100}%</span>
+            <div className="flex justify-between items-center py-3 border-b border-border">
+              <div>
+                <span className="text-slate-700 font-medium">Hotspot: {DATA.chicago.hotspot}</span>
+                <p className="text-xs text-muted mt-1">Highest risk neighborhood</p>
+              </div>
+              <span className="text-danger font-bold text-lg">{formatPercent(DATA.chicago.hotspot_smoking)}</span>
             </div>
-            <div className="bg-background/50 p-4 rounded-xl mt-6">
-              <p className="text-xs text-gray-500 mb-2 uppercase tracking-widest">10y Investment</p>
-              <p className="text-xl font-mono">${(results.chicago.investment / 1e6).toFixed(1)}M</p>
+            <div className="bg-blue-50 p-5 rounded-xl mt-4">
+              <p className="text-xs text-muted mb-1 uppercase tracking-wider font-medium">10-Year Investment Required</p>
+              <p className="text-2xl font-bold text-brand">${(results.chicago.investment / 1e6).toFixed(1)}M</p>
+              <p className="text-xs text-muted mt-2">Lives saved: {results.chicago.lives_saved.toLocaleString()}</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-surface p-8 rounded-3xl border border-gray-800 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/5 blur-3xl rounded-full"></div>
-          <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-            <ChevronRight className="text-blue-500" /> Philly Model
+        {/* Philadelphia */}
+        <div className="bg-surface p-8 rounded-2xl border border-border shadow-md hover:shadow-lg transition-shadow">
+          <h2 className="text-xl font-bold mb-6 flex items-center gap-2 text-slate-800">
+            <div className="w-3 h-3 bg-danger rounded-full"></div>
+            Philadelphia Model
           </h2>
           <div className="space-y-4">
-            <div className="flex justify-between border-b border-gray-800 pb-2 text-sm">
-              <span className="text-gray-500">Benchmark Smoking</span>
-              <span>16.0%</span>
+            <div className="flex justify-between items-center py-3 border-b border-border">
+              <span className="text-muted">City-wide Smoking Rate</span>
+              <span className="font-semibold text-slate-700">{formatPercent(DATA.philly.baseline_smoking)}</span>
             </div>
-            <div className="flex justify-between border-b border-gray-800 pb-2 text-sm">
-              <span className="text-gray-500 font-bold">Hotspot: {DATA.philly.hotspot}</span>
-              <span className="text-danger font-bold">{DATA.philly.hotspot_smoking * 100}%</span>
+            <div className="flex justify-between items-center py-3 border-b border-border">
+              <div>
+                <span className="text-slate-700 font-medium">Hotspot: {DATA.philly.hotspot}</span>
+                <p className="text-xs text-muted mt-1">Highest risk neighborhood</p>
+              </div>
+              <span className="text-danger font-bold text-lg">{formatPercent(DATA.philly.hotspot_smoking)}</span>
             </div>
-            <div className="bg-background/50 p-4 rounded-xl mt-6">
-              <p className="text-xs text-gray-500 mb-2 uppercase tracking-widest">10y Investment</p>
-              <p className="text-xl font-mono">${(results.philly.investment / 1e6).toFixed(1)}M</p>
+            <div className="bg-red-50 p-5 rounded-xl mt-4">
+              <p className="text-xs text-muted mb-1 uppercase tracking-wider font-medium">10-Year Investment Required</p>
+              <p className="text-2xl font-bold text-danger">${(results.philly.investment / 1e6).toFixed(1)}M</p>
+              <p className="text-xs text-muted mt-2">Lives saved: {results.philly.lives_saved.toLocaleString()}</p>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="bg-surface p-8 rounded-3xl border border-gray-800">
-        <h2 className="text-2xl font-bold mb-8">Economic Projection Over Time</h2>
+      {/* Chart */}
+      <div className="bg-surface p-8 rounded-2xl border border-border shadow-md">
+        <h2 className="text-xl font-bold mb-2 text-slate-800">Economic Projection Over Time</h2>
+        <p className="text-muted text-sm mb-6">Cumulative net savings from early detection screening programs</p>
         <div className="h-80 w-full">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#222" />
-              <XAxis dataKey="name" stroke="#666" />
-              <YAxis stroke="#666" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+              <XAxis dataKey="name" stroke="#64748b" fontSize={12} />
+              <YAxis stroke="#64748b" fontSize={12} tickFormatter={(value) => `$${(value / 1e6).toFixed(0)}M`} />
               <Tooltip
-                contentStyle={{ backgroundColor: '#121212', border: '1px solid #333', borderRadius: '12px' }}
-                itemStyle={{ color: '#fff' }}
+                contentStyle={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}
+                formatter={(value) => [`$${(value / 1e6).toFixed(1)}M`, '']}
+                labelStyle={{ color: '#1e293b', fontWeight: 'bold' }}
               />
               <Legend />
-              <Line type="monotone" dataKey="Chicago" stroke="#3b82f6" strokeWidth={4} dot={{ r: 6 }} />
-              <Line type="monotone" dataKey="Philly" stroke="#ef4444" strokeWidth={4} dot={{ r: 6 }} />
+              <Line type="monotone" dataKey="Chicago" stroke="#2563eb" strokeWidth={3} dot={{ r: 5, fill: '#2563eb' }} />
+              <Line type="monotone" dataKey="Philly" stroke="#dc2626" strokeWidth={3} dot={{ r: 5, fill: '#dc2626' }} />
             </LineChart>
           </ResponsiveContainer>
         </div>
+      </div>
+
+      {/* Footer Info */}
+      <div className="mt-8 p-4 bg-slate-100 rounded-xl border border-border">
+        <p className="text-xs text-muted text-center">
+          <strong>Methodology:</strong> ROI calculated based on LDCT screening costs ($300/screen), stage-shift savings (~$125K per case shifted from Stage IV to Stage I), and estimated mortality reduction rates. Adjust uptake to model different policy scenarios.
+        </p>
       </div>
     </div>
   );
