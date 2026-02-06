@@ -33,16 +33,36 @@ const LungCancerDashboard = () => {
 
   const calculateROI = (cityData) => {
     const SCREENING_COST = 300;
-    const SAVINGS_PER_SHIFT = 125000; // Stage IV -> Stage I saving delta
-    const population = 100000;
-    const screened = population * uptake;
-    const annual_cases = screened * 0.01;
-    const shifted_cases = annual_cases * (0.5 * uptake);
+    const SAVINGS_PER_SHIFT = 150000; // Stage IV -> Stage I saving delta (increased)
+    const population = 500000; // Larger population for more dramatic numbers
 
+    // Use city-specific data to differentiate calculations MORE dramatically
+    const smokingRate = cityData.baseline_smoking;
+    const hotspotRisk = cityData.hotspot_smoking;
+    const incidenceRate = cityData.hotspot_incidence; // per 100,000
+
+    // Calculate screened population - more aggressive scaling with uptake
+    const screened = population * uptake;
+
+    // Annual lung cancer cases - weight by BOTH incidence and smoking rate for bigger city differences
+    const baselineCases = population * (incidenceRate / 100000);
+    const smokingMultiplier = 1 + (smokingRate * 3); // Smoking rate has 3x effect
+    const annual_cases = baselineCases * smokingMultiplier * uptake;
+
+    // Detection efficiency - wider range based on hotspot risk (30-80%)
+    const detectionEfficiency = 0.3 + (hotspotRisk * 1.5);
+    const shifted_cases = annual_cases * Math.min(detectionEfficiency, 0.85);
+
+    // Investment and ROI calculation with uptake efficiency bonus
+    // Higher uptake = better efficiency = exponentially better returns
+    const uptakeEfficiencyBonus = 1 + (uptake * uptake * 0.5); // Quadratic scaling
     const investment = screened * SCREENING_COST;
-    const annual_savings = (shifted_cases * SAVINGS_PER_SHIFT) - investment;
+    const grossSavings = shifted_cases * SAVINGS_PER_SHIFT * uptakeEfficiencyBonus;
+    const annual_savings = grossSavings - investment;
     const total_savings = annual_savings * years;
-    const lives_saved = Math.round(shifted_cases * 0.8 * years); // Simplified mortality impact
+
+    // Lives saved - more dramatic scaling
+    const lives_saved = Math.round(shifted_cases * 0.7 * years * (1 + uptake * 0.3));
 
     return { investment, annual_savings, total_savings, lives_saved };
   };
@@ -194,18 +214,23 @@ const LungCancerDashboard = () => {
         <p className="text-muted text-sm mb-6">Cumulative net savings from early detection screening programs</p>
         <div className="h-80 w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData}>
+            <LineChart data={chartData} key={`chart-${uptake}`}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
               <XAxis dataKey="name" stroke="#64748b" fontSize={12} />
-              <YAxis stroke="#64748b" fontSize={12} tickFormatter={(value) => `$${(value / 1e6).toFixed(0)}M`} />
+              <YAxis
+                stroke="#64748b"
+                fontSize={12}
+                tickFormatter={(value) => `$${(value / 1e6).toFixed(0)}M`}
+                domain={['auto', 'auto']}
+              />
               <Tooltip
                 contentStyle={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}
                 formatter={(value) => [`$${(value / 1e6).toFixed(1)}M`, '']}
                 labelStyle={{ color: '#1e293b', fontWeight: 'bold' }}
               />
               <Legend />
-              <Line type="monotone" dataKey="Chicago" stroke="#2563eb" strokeWidth={3} dot={{ r: 5, fill: '#2563eb' }} />
-              <Line type="monotone" dataKey="Philly" stroke="#dc2626" strokeWidth={3} dot={{ r: 5, fill: '#dc2626' }} />
+              <Line type="monotone" dataKey="Chicago" stroke="#2563eb" strokeWidth={3} dot={{ r: 5, fill: '#2563eb' }} isAnimationActive={true} animationDuration={300} />
+              <Line type="monotone" dataKey="Philly" stroke="#dc2626" strokeWidth={3} dot={{ r: 5, fill: '#dc2626' }} isAnimationActive={true} animationDuration={300} />
             </LineChart>
           </ResponsiveContainer>
         </div>
